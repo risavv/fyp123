@@ -18,21 +18,23 @@ const Student = new mongoose.Schema({
     type: String,
     required: true,
   },
+  email: {
+    type: String,
+    required: true,
+  },
   password: {
+    type: String,
+    required: true,
+  },
+  instrument: {
+    type: String,
+    required: true,
+  },
+  level: {
     type: String,
     required: true,
   },
 });
 
-const SignSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-  },
-  password: {
-    type: String,
-    required: true,
-  },
-});
 const collection = new mongoose.model("Students", Student);
 module.exports = collection;

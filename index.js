@@ -3,6 +3,7 @@ const path = require("path");
 const bcrypt = require("bcrypt");
 const collection = require("./config");
 const { name } = require("ejs");
+const tcollection = require("./coufig");
 const app = express();
 
 // for JSON
@@ -20,7 +21,7 @@ app.get("/signup", (req, res) => {
   res.render("signup");
 });
 
-// SIGN UP!!!
+// SIGN UP (Student)!!!
 app.post("/signauth", async (req, res) => {
   try {
     const { fullname, email, password, instrument, level } = req.body;
@@ -40,17 +41,7 @@ app.post("/signauth", async (req, res) => {
       const saltRounds = 10;
       const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-      // Insert user data into the collection
-      const userData = await collection.create({
-        name: fullname,
-        email: email,
-        password: hashedPassword,
-        instrument: instrument,
-        level: level,
-      });
-
-      console.log(userData);
-
+      console.log(req.body);
       // Create a new document with the provided data
       const newUser = await collection.create({
         name: fullname,
@@ -70,43 +61,43 @@ app.post("/signauth", async (req, res) => {
   }
 });
 
-app.post("/logins", async (req, res) => {
+// SIGN UP (teacher)!!!
+app.post("/teachsign", async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { fullname, email, password, instrument, level } = req.body;
+    // Check if all required fields are provided
+    if (!fullname || !email || !password || !instrument || !level) {
+      return res.status(400).send("All fields are required");
+    }
 
-    // Check if the username contains ".instructor"
-    if (username.includes(".instructor")) {
-      // If the username contains ".instructor", it's considered an instructor login
-      // Perform instructor login authentication logic here
-
-      // For demonstration purposes, let's assume there's a separate collection for instructors
-      const instructor = await instructorCollection.findOne({ username });
-
-      if (!instructor) {
-        return res.send("Instructor username not found.");
-      }
-
-      const isPasswordMatch = await bcrypt.compare(
-        password,
-        instructor.password
+    // check if user already exists
+    const existingUser = await tcollection.findOne({ name: fullname });
+    if (existingUser) {
+      return res.send(
+        "Username already exists. Please choose a different username."
       );
-
-      if (isPasswordMatch) {
-        // Passwords match, render instructor dashboard
-        return res.render("teacherdash");
-      } else {
-        // Passwords do not match
-        return res.send("Wrong password.");
-      }
     } else {
-      // If the username does not contain ".instructor", it's not an instructor login
-      // Handle other types of logins here, if necessary
-      return res.send("Invalid username format.");
+      // password hashing
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+      console.log(tcollection);
+      // Create a new document with the provided data
+      const newUser = await tcollection.create({
+        name: fullname,
+        email: email,
+        password: hashedPassword,
+        instrument: instrument,
+        level: level,
+      });
+      await newUser.save();
+
+      console.log("User registered:", newUser);
+      res.status(201).send("User registered successfully");
     }
   } catch (error) {
-    // Log and handle errors
-    console.error("Error during login authentication:", error);
-    return res.status(500).send("An unexpected error occurred.");
+    console.error("Error registering user:", error);
+    res.status(500).send("Internal Server Error");
   }
 });
 

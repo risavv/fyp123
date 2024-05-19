@@ -1,63 +1,40 @@
-// const mongoose = require("mongoose");
+const mongoose = require("mongoose");
+const connect = mongoose.connect(
+  "mongodb+srv://Rishav:katipasswordchangegarnu112@fyp-123.aafxogf.mongodb.net/"
+);
 
-// const courseSchema = new mongoose.Schema({
-//   title: {
-//     type: String,
-//     required: true,
-//   },
-//   instructor: {
-//     type: mongoose.Schema.Types.ObjectId,
-//     ref: "User",
-//     required: true,
-//   },
-//   instrument_type: {
-//     type: String,
-//     required: true,
-//   },
-//   level: {
-//     type: String,
-//     required: true,
-//   },
-//   lessons: [{ type: mongoose.Schema.Types.ObjectId, ref: "Lesson" }],
-// });
+connect
+  .then(() => {
+    console.log("Database connected!");
+  })
 
-// const lessonSchema = new mongoose.Schema({
-//   title: {
-//     type: String,
-//     required: true,
-//   },
-//   course: {
-//     type: mongoose.Schema.Types.ObjectId,
-//     ref: "Course",
-//     required: true,
-//   },
-// });
+  .catch(() => {
+    console.log("Database cannot be connected!");
+  });
 
-// const userSchema = new mongoose.Schema({
-//   name: {
-//     type: String,
-//     required: true,
-//   },
-//   password: {
-//     type: String,
-//     required: true,
-//   },
-//   instrument_type: {
-//     type: String,
-//     required: true,
-//   },
-//   level: {
-//     type: String,
-//     required: true,
-//   },
-//   is_instructor: {
-//     type: Boolean,
-//     default: false,
-//   },
-// });
+//schema
+const Teacher = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+  },
+  email: {
+    type: String,
+    required: true,
+  },
+  password: {
+    type: String,
+    required: true,
+  },
+  instrument: {
+    type: String,
+    required: true,
+  },
+  level: {
+    type: String,
+    required: true,
+  },
+});
 
-// const Course = mongoose.model("Course", courseSchema);
-// const Lesson = mongoose.model("Lesson", lessonSchema);
-// const User = mongoose.model("User", userSchema);
-
-// module.exports = { Course, Lesson, User };
+const tcollection = new mongoose.model("Instructors", Teacher);
+module.exports = tcollection;
