@@ -5,9 +5,9 @@ const collection = require("./config");
 const { name } = require("ejs");
 const tcollection = require("./coufig");
 const app = express();
-
 const multer = require("multer");
 const fileCollection = require("./FileModal");
+const axios = require("axios");
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -38,9 +38,11 @@ const upload = multer({
 // for JSON
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+// app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static("public"));
 
-app.set("view engine", "ejs");
-app.set("views", "D:\\bothends-fyp\\backend-fyp\\views");
+// app.set("view engine", "ejs");
+// app.set("views", "D:\\bothends-fyp\\backend-fyp\\views");
 
 app.get("/login", (req, res) => {
   res.render("login");
@@ -82,7 +84,8 @@ app.post("/signauth", async (req, res) => {
       await newUser.save();
 
       console.log("User registered:", newUser);
-      res.status(201).send("User registered successfully");
+      // res.status(201).send("User registered successfully");
+      res.sendFile(path.join(__dirname, "public", "studentd.html"));
     }
   } catch (error) {
     console.error("Error registering user:", error);
@@ -122,7 +125,8 @@ app.post("/teachsign", async (req, res) => {
       await newUser.save();
 
       console.log("User registered:", newUser);
-      res.status(201).send("User registered successfully");
+      res.sendFile(path.join(__dirname, "public", "teacherd.html"));
+      // res.status(201).send("User registered successfully");
     }
   } catch (error) {
     console.error("Error registering user:", error);
@@ -144,8 +148,42 @@ app.post("/logauth", async (req, res) => {
     );
 
     if (isPasswordMatch) {
-      // Passwords match, render studentlog page
-      return res.render("studentdash");
+      const response = await axios.get("http://localhost:5000/api/files/");
+      const files = response.data;
+      console.log("files", files);
+      res.sendFile(path.join(__dirname, "public", "studentd.html"), { files });
+      // return res.render("studentdash", { files });
+    } else {
+      // Passwords do not match
+      return res.send("Wrong password.");
+    }
+  } catch (error) {
+    // Log the error for debugging purposes
+    console.error("Error during login authentication:", error);
+    // Send an appropriate error message to the client
+    return res.status(500).send("An unexpected error occurred.");
+  }
+});
+
+//LOGIN teach!!!
+app.post("/teachlog", async (req, res) => {
+  try {
+    const check = await collection.findOne({ name: req.body.username });
+    if (!check) {
+      return res.send("Username cannot be found.");
+    }
+
+    const isPasswordMatch = await bcrypt.compare(
+      req.body.password,
+      check.password
+    );
+
+    if (isPasswordMatch) {
+      // const response = await axios.get("http://localhost:5000/api/files/");
+      // const files = response.data;
+      // console.log("files", files);
+      res.sendFile(path.join(__dirname, "public", "teacherd.html"), { files });
+      // return res.render("studentdash", { files });
     } else {
       // Passwords do not match
       return res.send("Wrong password.");
@@ -159,7 +197,7 @@ app.post("/logauth", async (req, res) => {
 });
 
 // FILE UPLOAD (TEACH)
-app.post("/api/file", function (req, res) {
+app.post("/teachcou", function (req, res) {
   console.log(req);
   upload(req, res, function (err) {
     if (err) {
@@ -200,6 +238,9 @@ app.get("/api/file/:id", async (req, res) => {
 
 // Serve files statically for viewing
 app.use("/uploads", express.static("uploads"));
+
+// serve
+app.use(express.static(path.join(__dirname + "/public")));
 
 // // LOGIN teacher!!!
 // app.post("/logins", async (req, res) => {

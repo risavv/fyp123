@@ -78,4 +78,39 @@
     dots: false,
     loop: true,
   });
+
+  //file
+  function fetchAndAppendData() {
+    const apiUrl = "http://localhost:5000/api/files/"; // Replace with your API URL
+
+    $.getJSON(apiUrl, function (data) {
+      // Assuming 'data' is an array of objects
+      const $container = $("#ayush"); // The container where data will be appended
+
+      data.forEach((item) => {
+        // Create an HTML structure for each item
+        const itemHtml = `
+          <div class="data-item">
+            <h3>${item.name}</h3>
+          </div>
+        `;
+        // Append the item to the container
+        $container.append(itemHtml);
+      });
+    }).fail(function () {
+      console.error("An error occurred while fetching data.");
+    });
+  }
+  fetchAndAppendData();
+  // Fetch and append data when the document is ready
+  $(document).ready(function () {
+    fetchAndAppendData();
+  });
+
+  function navigateToPage(url) {
+    window.location.href = url;
+  }
+
+  // Attach the function to the global window object
+  window.navigateToPage = navigateToPage;
 })(jQuery);
