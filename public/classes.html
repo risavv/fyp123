@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>HMC - Home</title>
+    <title>Classes</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="" name="keywords">
     <meta content="" name="description">
@@ -142,19 +142,50 @@
 
 
 <div class="container">
-    <div class="notification-panel">
-        <h3>Your Recent Class Links:</h3>
-      <div>
-        <a href="https://meet.google.com/abc-123-def">
-            <i class="fa fa-download" aria-hidden="true"></i> https://meet.google.com/abc-123-def
-        </a>
-    </div>
-    <div style="margin-top: 15px;">
-        <a href="https://meet.google.com/ghi-456-jkl">
-            <i class="fa fa-download" aria-hidden="true"></i> https://meet.google.com/ghi-456-jkl
-        </a>
-    </div>
-        
+  <div class="notification-panel">
+        <h3>Your Class Links</h3>
+        <div id="classlink"></div>
+      </div>
+      <script>
+        async function fetchLessonMaterials() {
+            try {
+                const response = await fetch("http://localhost:5000/class");
+                const files = await response.json();
+                const lessonMaterialsList = document.getElementById('classlink');
+                lessonMaterialsList.innerHTML = ''; // Clear any existing content
+                
+                files.forEach(file => {
+                    // Create a div element to hold the description and button
+                    const fileDiv = document.createElement('div');
+                    fileDiv.className = 'file-item';
+
+                    // Create a paragraph element for the description
+                    const descriptionParagraph = document.createElement('p');
+                    descriptionParagraph.textContent = file.description;
+
+                    // Create a button element to open the link in a new window
+                    const buttonElement = document.createElement('button');
+                    buttonElement.className = 'open-link-button';
+                    buttonElement.textContent = 'Join Class';
+                    buttonElement.onclick = () => {
+                        window.open(file.link, '_blank');
+                    };
+
+                    // Append the description and button to the file div
+                    fileDiv.appendChild(descriptionParagraph);
+                    fileDiv.appendChild(buttonElement);
+
+                    // Append the file div to the lesson materials list
+                    lessonMaterialsList.appendChild(fileDiv);
+                });
+            } catch (error) {
+                console.error('Error fetching lesson materials:', error);
+            }
+        }
+
+        // Call the function to fetch and display the lesson materials
+        fetchLessonMaterials();
+    </script>
     </div>
 </div>
 

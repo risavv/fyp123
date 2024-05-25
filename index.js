@@ -3,12 +3,14 @@ const path = require("path");
 const bcrypt = require("bcrypt");
 const collection = require("./config");
 const { name } = require("ejs");
+const cors = require("cors");
 const tcollection = require("./coufig");
 const app = express();
 const multer = require("multer");
 const fileCollection = require("./FileModal");
 const axios = require("axios");
-
+const classCollection = require("./class");
+const quizCollection = require("./quiz");
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "uploads/"); // Ensure this directory exists
@@ -35,11 +37,11 @@ const upload = multer({
   fileFilter: fileFilter,
 }).single("userFile");
 
-// for JSON
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 // app.use(express.static(path.join(__dirname, "public")));
 app.use(express.static("public"));
+app.use(cors());
 
 // app.set("view engine", "ejs");
 // app.set("views", "D:\\bothends-fyp\\backend-fyp\\views");
@@ -148,10 +150,10 @@ app.post("/logauth", async (req, res) => {
     );
 
     if (isPasswordMatch) {
-      const response = await axios.get("http://localhost:5000/api/files/");
-      const files = response.data;
-      console.log("files", files);
-      res.sendFile(path.join(__dirname, "public", "studentd.html"), { files });
+      // const response = await axios.get("http://localhost:5000/api/files/");
+      // const files = response.data;
+      // console.log("files", files);
+      res.sendFile(path.join(__dirname, "public", "studentd.html"));
       // return res.render("studentdash", { files });
     } else {
       // Passwords do not match
@@ -168,7 +170,8 @@ app.post("/logauth", async (req, res) => {
 //LOGIN teach!!!
 app.post("/teachlog", async (req, res) => {
   try {
-    const check = await collection.findOne({ name: req.body.username });
+    console.log(req.body);
+    const check = await tcollection.findOne({ name: req.body.user });
     if (!check) {
       return res.send("Username cannot be found.");
     }
@@ -182,7 +185,7 @@ app.post("/teachlog", async (req, res) => {
       // const response = await axios.get("http://localhost:5000/api/files/");
       // const files = response.data;
       // console.log("files", files);
-      res.sendFile(path.join(__dirname, "public", "teacherd.html"), { files });
+      res.sendFile(path.join(__dirname, "public", "teacherd.html"));
       // return res.render("studentdash", { files });
     } else {
       // Passwords do not match
@@ -196,6 +199,108 @@ app.post("/teachlog", async (req, res) => {
   }
 });
 
+// quiz form link
+app.post("/quiz", async (req, res) => {
+  const { description, link } = req.body;
+
+  if (!description || !link) {
+    return res.status(400).send("Missing required fields.");
+  }
+
+  try {
+    const newQuiz = new quizCollection({ description, link });
+    await newQuiz.save();
+    res.status(500).send("Quiz link has been uploaded.");
+  } catch (error) {
+    res.status(500).send("Error creating quiz: " + error.message);
+  }
+});
+app.get("/quiz", async (req, res) => {
+  try {
+    const quizzes = await quizCollection.find({});
+    res.status(200).json(quizzes);
+  } catch (error) {
+    res.status(500).send("Error fetching quizzes: " + error.message);
+  }
+});
+
+// class link
+app.post("/class", async (req, res) => {
+  const { description, link } = req.body;
+  console.log(req);
+  if (!description || !link) {
+    return res.status(400).send("Missing required fields.");
+  }
+
+  try {
+    const newQuiz = new classCollection({ description, link });
+    await newQuiz.save();
+    res.status(500).send("Class link has been added.");
+  } catch (error) {
+    res.status(500).send("Error creating class: " + error.message);
+  }
+});
+app.get("/class", async (req, res) => {
+  try {
+    const quizzes = await classCollection.find({});
+    res.status(200).json(quizzes);
+  } catch (error) {
+    res.status(500).send("Error fetching class: " + error.message);
+  }
+});
+
+// update profile (Student)
+app.post("/update-student/:id", async (req, res) => {
+  const { id } = req.params;
+  const updates = req.body;
+
+  if (!updates.name && !updates.email && !updates.password) {
+    return res.status(400).send("No fields provided to update.");
+  }
+
+  try {
+    const updatedTeacher = await collection.findByIdAndUpdate(
+      id,
+      { $set: updates },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedTeacher) {
+      return res.status(404).send("Student not found.");
+    }
+
+    res.status(200).send("Succesfully updated user info.");
+  } catch (error) {
+    res.status(500).send("Error updating profile: " + error.message);
+  }
+});
+
+// update teacher
+app.post("/update-teacher/:id", async (req, res) => {
+  const { id } = req.params;
+  const updates = req.body;
+
+  if (!updates.name && !updates.email && !updates.password) {
+    return res.status(400).send("No fields provided to update.");
+  }
+
+  try {
+    const updatedTeacher = await tcollection.findByIdAndUpdate(
+      id,
+      { $set: updates },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedTeacher) {
+      return res.status(404).send("Teacher not found.");
+    }
+
+    res.status(200).send("Succesfully updated user info.");
+  } catch (error) {
+    res.status(500).send("Error updating profile: " + error.message);
+  }
+});
+
 // FILE UPLOAD (TEACH)
 app.post("/teachcou", function (req, res) {
   console.log(req);
@@ -203,14 +308,14 @@ app.post("/teachcou", function (req, res) {
     if (err) {
       return res.status(400).send(err.message);
     }
-
+    console.log(req.file);
     const newFile = new fileCollection({
       name: req.file.originalname,
       file: req.file.path,
     });
 
     newFile.save();
-    res.status(201).send("FileUploaded successfully");
+    res.status(201).send("File has been uploaded successfully.");
   });
 });
 
@@ -228,11 +333,11 @@ app.get("/api/file/:id", async (req, res) => {
   try {
     const file = await fileCollection.findById(req.params.id);
     if (!file) {
-      return res.status(404).send("File not found");
+      return res.status(404).send("File not found.");
     }
     res.download(file.file, file.name);
   } catch (err) {
-    res.status(500).send("Error downloading file");
+    res.status(500).send("Error downloading file.");
   }
 });
 

@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>HMC - Home</title>
+    <title>Lessons</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="" name="keywords">
     <meta content="" name="description">
@@ -140,32 +140,37 @@
         }
     </style>
 
-
 <div class="container">
     <div class="notification-panel">
         <h3>Your Lesson Materials</h3>
-      <div>
-        <a href="D:\Guitar Materials\Max\Max-001\ALTERNATE.pdf" download>
-            <i class="fa fa-download" aria-hidden="true"></i> Alternate Picking
-        </a>
-    </div>
-    <div style="margin-top: 15px;">
-        <a href="D:\Guitar Materials\Max\Max-001\LEGATO 4.pdf" download>
-            <i class="fa fa-download" aria-hidden="true"></i> Legato
-        </a>
-    </div>
-    <div style="margin-top: 15px;">
-        <a href="D:\Guitar Materials\Max\Max-001\major scale.pdf" download>
-            <i class="fa fa-download" aria-hidden="true"></i> Major Scale
-        </a>
-    </div>
-    <div style="margin-top: 15px;">
-        <a href="D:\Guitar Materials\Max\Max-001\more_than_words.PDF" download>
-            <i class="fa fa-download" aria-hidden="true"></i> More Than Words
-        </a>
-    </div>
-        
-    </div>
+        <div id="lessonMaterialsList"></div>
+      </div>
+      <script>
+        window.addEventListener('DOMContentLoaded', async function () {
+          try {
+            const response = await fetch("http://localhost:5000/api/files/");
+            const files = await response.json();
+            const lessonMaterialsList = document.getElementById('lessonMaterialsList');
+            lessonMaterialsList.innerHTML = ''; // Clear previous content
+    
+            files.forEach(file => {
+              const fileItem = document.createElement('div');
+              const downloadLink = document.createElement('a');
+              downloadLink.href = `http://localhost:5000/api/file/${file._id}`;
+              const icon = document.createElement('i');
+              icon.classList.add('fa', 'fa-download');
+              const fileName = document.createTextNode(file.name);
+              downloadLink.appendChild(icon);
+              downloadLink.appendChild(fileName);
+              fileItem.appendChild(downloadLink);
+              lessonMaterialsList.appendChild(fileItem);
+            });
+          } catch (error) {
+            console.error('Error fetching lesson materials:', error);
+            alert('An error occurred while fetching lesson materials. Please try again later.');
+          }
+        });
+      </script>
 </div>
 
 
